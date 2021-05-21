@@ -323,6 +323,7 @@ class DALLE(nn.Module):
         sparse_attn = False,
         attn_types = None,
         loss_img_weight = 7,
+        pretrained_text_emb = None
     ):
         super().__init__()
         assert isinstance(vae, (DiscreteVAE, OpenAIDiscreteVAE, VQGanVAE1024)), 'vae must be an instance of DiscreteVAE'
@@ -334,7 +335,11 @@ class DALLE(nn.Module):
 
         num_text_tokens = num_text_tokens + text_seq_len  # reserve unique padding tokens for each position (text seq len)
 
-        self.text_emb = nn.Embedding(num_text_tokens, dim)
+        if pretrained_text_emb:
+            pretrained_dim = pretrained_text_emb.embedding_dim
+            self.text_emb = nn.Sequential(pretrained_text_emb, nn.Linear(pretrained_dim, dim))
+        else:
+            self.text_emb = nn.Embedding(num_text_tokens, dim)
         self.image_emb = nn.Embedding(num_image_tokens, dim)
 
         self.text_pos_emb = nn.Embedding(text_seq_len + 1, dim) # +1 for <bos>
