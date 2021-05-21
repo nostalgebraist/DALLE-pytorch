@@ -339,7 +339,7 @@ class DALLE(nn.Module):
             pretrained_dim = pretrained_text_emb.embedding_dim
             text_emb = nn.Embedding(num_text_tokens, pretrained_dim)
             proj = nn.Linear(pretrained_dim, dim)
-            self.text_emb = nn.Sequential(pretrained_text_emb, proj)
+            self.text_emb = nn.Sequential(text_emb, proj)
             self._pretrained_text_emb_weight = pretrained_text_emb.weight
         else:
             self.text_emb = nn.Embedding(num_text_tokens, dim)
