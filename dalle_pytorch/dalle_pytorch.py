@@ -337,7 +337,9 @@ class DALLE(nn.Module):
 
         if pretrained_text_emb:
             pretrained_dim = pretrained_text_emb.embedding_dim
-            self.text_emb = nn.Sequential(pretrained_text_emb, nn.Linear(pretrained_dim, dim))
+            text_emb = nn.Embedding(num_text_tokens, pretrained_dim)
+            proj = nn.Linear(pretrained_dim, dim)
+            self.text_emb = nn.Sequential(pretrained_text_emb, proj)
         else:
             self.text_emb = nn.Embedding(num_text_tokens, dim)
         self.image_emb = nn.Embedding(num_image_tokens, dim)
