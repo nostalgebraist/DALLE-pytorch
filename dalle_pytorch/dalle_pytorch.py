@@ -398,11 +398,10 @@ class DALLE(nn.Module):
 
     @torch.no_grad()
     def setup(self):
-        if hasattr(self, _pretrained_text_emb_weight):
+        if hasattr(self, "_pretrained_text_emb_weight"):
             pre = self._pretrained_text_emb_weight
             npre = pre.shape[0]
             self.text_emb[0].weight[:npre, :] = pre
-
 
     @torch.no_grad()
     @eval_decorator
