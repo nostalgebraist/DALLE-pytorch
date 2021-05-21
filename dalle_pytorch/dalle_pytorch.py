@@ -433,7 +433,7 @@ class DALLE(nn.Module):
             indices = indices[:, :num_img_tokens]
             out = torch.cat((out, indices), dim = -1)
 
-        for cur_len in trange(out.shape[1], total_len):
+        for cur_len in trange(out.shape[1], total_len, mininterval=1):
             is_image = cur_len >= text_seq_len
 
             text, image = out[:, :text_seq_len], out[:, text_seq_len:]
