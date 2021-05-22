@@ -377,7 +377,8 @@ class DALLE(nn.Module):
             ff_dropout = ff_dropout,
             attn_types = attn_types,
             image_fmap_size = image_fmap_size,
-            sparse_attn = sparse_attn
+            sparse_attn = sparse_attn,
+            text_seq_len=text_seq_len
         )
 
         self.to_logits = nn.Sequential(

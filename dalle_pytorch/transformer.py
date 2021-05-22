@@ -86,7 +86,8 @@ class Transformer(nn.Module):
         ff_dropout = 0.,
         attn_types = None,
         image_fmap_size = None,
-        sparse_attn = False
+        sparse_attn = False,
+        text_seq_len = 256
     ):
         super().__init__()
         layers = nn.ModuleList([])
@@ -100,7 +101,7 @@ class Transformer(nn.Module):
             if attn_type == 'full':
                 attn_class = Attention
             elif attn_type == 'sparse':
-                attn_class = SparseAttention
+                attn_class = partial(SparseAttention, text_seq_len=text_seq_len)
             elif attn_type == 'axial_row':
                 attn_class = partial(SparseAxialCausalAttention, seq_len = seq_len, axis = 0, image_size = image_fmap_size)
             elif attn_type == 'axial_col':
