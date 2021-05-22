@@ -323,6 +323,7 @@ class DALLE(nn.Module):
         sparse_attn = False,
         attn_types = None,
         loss_img_weight = 7,
+        channels = 3,
         pretrained_text_emb = None
     ):
         super().__init__()
@@ -358,6 +359,8 @@ class DALLE(nn.Module):
         total_tokens = num_text_tokens + num_image_tokens
         self.total_tokens = total_tokens
         self.total_seq_len = seq_len
+
+        self.channels = channels
 
         self.vae = vae
         set_requires_grad(self.vae, False) # freeze VAE from being trained
@@ -416,7 +419,7 @@ class DALLE(nn.Module):
         img = None,
         num_init_img_tokens = None
     ):
-        vae, text_seq_len, image_seq_len, num_text_tokens = self.vae, self.text_seq_len, self.image_seq_len, self.num_text_tokens
+        vae, text_seq_len, image_seq_len, num_text_tokens, channels = self.vae, self.text_seq_len, self.image_seq_len, self.num_text_tokens, self.channels
         total_len = text_seq_len + image_seq_len
 
         text = text[:, :text_seq_len] # make sure text is within bounds
@@ -424,7 +427,7 @@ class DALLE(nn.Module):
 
         if exists(img):
             image_size = vae.image_size
-            assert img.shape[1] == 3 and img.shape[2] == image_size and img.shape[3] == image_size, f'input image must have the correct image size {image_size}'
+            assert img.shape[1] == and img.shape[2] == image_size and img.shape[3] == image_size, f'input image must have the correct image size {image_size}'
 
             indices = vae.get_codebook_indices(img)
             num_img_tokens = default(num_init_img_tokens, int(0.4375 * image_seq_len))  # OpenAI used 14 * 32 initial tokens to prime
@@ -490,7 +493,7 @@ class DALLE(nn.Module):
 
             if is_raw_image:
                 image_size = self.vae.image_size
-                assert tuple(image.shape[1:]) == (3, image_size, image_size), f'invalid image of dimensions {image.shape} passed in during training'
+                assert tuple(image.shape[1:]) == (self.channels, image_size, image_size), f'invalid image of dimensions {image.shape} passed in during training'
 
                 image = self.vae.get_codebook_indices(image)
 
