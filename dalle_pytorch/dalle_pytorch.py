@@ -427,7 +427,7 @@ class DALLE(nn.Module):
 
         if exists(img):
             image_size = vae.image_size
-            assert img.shape[1] == and img.shape[2] == image_size and img.shape[3] == image_size, f'input image must have the correct image size {image_size}'
+            assert img.shape[1] == channels and img.shape[2] == image_size and img.shape[3] == image_size, f'input image must have the correct image size {image_size}'
 
             indices = vae.get_codebook_indices(img)
             num_img_tokens = default(num_init_img_tokens, int(0.4375 * image_seq_len))  # OpenAI used 14 * 32 initial tokens to prime
