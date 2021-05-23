@@ -186,7 +186,8 @@ class DiscreteVAE(nn.Module):
         return_loss = False,
         return_recons = False,
         return_logits = False,
-        temp = None
+        temp = None,
+        debug = False
     ):
         device, num_tokens, image_size, kl_div_loss_weight = img.device, self.num_tokens, self.image_size, self.kl_div_loss_weight
         assert img.shape[-1] == image_size and img.shape[-2] == image_size, f'input must have the correct image size {image_size}'
@@ -218,6 +219,9 @@ class DiscreteVAE(nn.Module):
         kl_div = F.kl_div(log_uniform, log_qy, None, None, 'batchmean', log_target = True)
 
         loss = recon_loss + (kl_div * kl_div_loss_weight)
+
+        if debug:
+            print(logits.mean().item(), recon_loss.item(), kl_div.item(), loss.item())
 
         if not return_recons:
             return loss
@@ -324,7 +328,8 @@ class DALLE(nn.Module):
         attn_types = None,
         loss_img_weight = 7,
         channels = 3,
-        pretrained_text_emb = None
+        pretrained_text_emb = None,
+        amp_vae=False,
     ):
         super().__init__()
         assert isinstance(vae, (DiscreteVAE, OpenAIDiscreteVAE, VQGanVAE1024)), 'vae must be an instance of DiscreteVAE'
@@ -364,6 +369,8 @@ class DALLE(nn.Module):
 
         self.vae = vae
         set_requires_grad(self.vae, False) # freeze VAE from being trained
+
+        self.amp_vae = amp_vae
 
         self.transformer = Transformer(
             dim = dim,
@@ -430,7 +437,8 @@ class DALLE(nn.Module):
             image_size = vae.image_size
             assert img.shape[1] == channels and img.shape[2] == image_size and img.shape[3] == image_size, f'input image must have the correct image size {image_size}'
 
-            indices = vae.get_codebook_indices(img)
+            with torch.cuda.amp.autocast(enabled=self.amp_vae):
+                indices = vae.get_codebook_indices(img)
             num_img_tokens = default(num_init_img_tokens, int(0.4375 * image_seq_len))  # OpenAI used 14 * 32 initial tokens to prime
             assert num_img_tokens < image_seq_len, 'number of initial image tokens for priming must be less than the total image token sequence length'
 
@@ -496,7 +504,8 @@ class DALLE(nn.Module):
                 image_size = self.vae.image_size
                 assert tuple(image.shape[1:]) == (self.channels, image_size, image_size), f'invalid image of dimensions {image.shape} passed in during training'
 
-                image = self.vae.get_codebook_indices(image)
+                with torch.cuda.amp.autocast(enabled=self.amp_vae):
+                    image = self.vae.get_codebook_indices(image)
 
             image_len = image.shape[1]
             image_emb = self.image_emb(image)
