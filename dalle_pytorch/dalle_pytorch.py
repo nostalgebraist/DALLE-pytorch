@@ -204,7 +204,7 @@ class DiscreteVAE(nn.Module):
         sampled = einsum('b n h w, n d -> b d h w', soft_one_hot, self.codebook.weight)
 
         with torch.cuda.amp.autocast(enabled=False):
-            out = self.decoder(sampled)
+            out = self.decoder(sampled.to(torch.float32))
 
         if not return_loss:
             return out
