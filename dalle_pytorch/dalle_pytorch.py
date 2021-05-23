@@ -209,7 +209,8 @@ class DiscreteVAE(nn.Module):
 
         # reconstruction loss
 
-        recon_loss = self.loss_fn(img, out)
+        with torch.cuda.amp.autocast(enabled=False):
+            recon_loss = self.loss_fn(img, out)
 
         # kl divergence
 
