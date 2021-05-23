@@ -221,7 +221,7 @@ class DiscreteVAE(nn.Module):
         loss = recon_loss + (kl_div * kl_div_loss_weight)
 
         if debug:
-            print(logits.mean().item(), recon_loss.item(), kl_div.item(), loss.item())
+            print(logits.mean().item(), img.mean().item(), recon_loss.item(), kl_div.item(), loss.item())
 
         if not return_recons:
             return loss
