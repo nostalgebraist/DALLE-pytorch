@@ -202,7 +202,9 @@ class DiscreteVAE(nn.Module):
         temp = default(temp, self.temperature)
         soft_one_hot = F.gumbel_softmax(logits, tau = temp, dim = 1, hard = self.straight_through)
         sampled = einsum('b n h w, n d -> b d h w', soft_one_hot, self.codebook.weight)
-        out = self.decoder(sampled)
+
+        with torch.cuda.amp.autocast(enabled=False):
+            out = self.decoder(sampled)
 
         if not return_loss:
             return out
