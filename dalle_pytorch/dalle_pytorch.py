@@ -482,7 +482,8 @@ class DALLE(nn.Module):
         text,
         image = None,
         mask = None,
-        return_loss = False
+        return_loss = False,
+        return_individual_losses = False
     ):
         assert text.shape[-1] == self.text_seq_len, f'the length {text.shape[-1]} of the text tokens you passed in does not have the correct length ({self.text_seq_len})'
         device, total_seq_len = text.device, self.total_seq_len
@@ -550,4 +551,6 @@ class DALLE(nn.Module):
         loss_img = F.cross_entropy(logits[:, :, self.text_seq_len:], labels[:, self.text_seq_len:])
 
         loss = (loss_text + self.loss_img_weight * loss_img) / (self.loss_img_weight + 1)
+        if return_individual_losses:
+            return loss, loss_text, loss_img
         return loss
