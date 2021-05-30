@@ -349,7 +349,7 @@ class DALLE(nn.Module):
         if pretrained_text_emb:
             pretrained_dim = pretrained_text_emb.embedding_dim
             text_emb = nn.Embedding(num_text_tokens, pretrained_dim)
-            proj = nn.Linear(pretrained_dim, dim)
+            proj = nn.Linear(pretrained_dim, dim, bias=False)
             self.text_emb = nn.Sequential(text_emb, proj)
             self._pretrained_text_emb_weight = pretrained_text_emb.weight
         else:
@@ -422,10 +422,9 @@ class DALLE(nn.Module):
             self.text_emb[0].weight[:npre, :] = pre
 
         if self.tie_weights:
-            text_emb = self.text_emb[0] if hasattr(self, "_pretrained_text_emb_weight") else self.text_emb
-            image_emb = self.image_emb
-            self.to_logits[1].weight[:self.num_text_tokens, :] = text_emb.weight
-            self.to_logits[1].weight[self.num_text_tokens:, :] = image_emb.weight
+            if not hasattr(self, "_pretrained_text_emb_weight"):
+                self.to_logits[1].weight[:self.num_text_tokens, :] = self.text_emb.weight
+            self.to_logits[1].weight[self.num_text_tokens:, :] = self.image_emb.weight
 
     @torch.no_grad()
     @eval_decorator
