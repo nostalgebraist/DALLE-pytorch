@@ -422,7 +422,7 @@ class DALLE(nn.Module):
             self.text_emb[0].weight[:npre, :] = pre
 
         if self.tie_weights:
-            text_emb = self.text_emb[0] if if hasattr(self, "_pretrained_text_emb_weight") else self.text_emb
+            text_emb = self.text_emb[0] if hasattr(self, "_pretrained_text_emb_weight") else self.text_emb
             image_emb = self.image_emb
             self.to_logits[1].weight[:self.num_text_tokens, :] = text_emb.weight
             self.to_logits[1].weight[self.num_text_tokens:, :] = image_emb.weight
