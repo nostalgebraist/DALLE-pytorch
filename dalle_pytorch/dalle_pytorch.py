@@ -334,6 +334,7 @@ class DALLE(nn.Module):
         channels = 3,
         pretrained_text_emb = None,
         amp_vae=False,
+        tie_weights=False,
     ):
         super().__init__()
         assert isinstance(vae, (DiscreteVAE, OpenAIDiscreteVAE, VQGanVAE1024)), 'vae must be an instance of DiscreteVAE'
@@ -411,12 +412,18 @@ class DALLE(nn.Module):
         self.register_buffer('logits_mask', logits_mask, persistent=False)
         self.loss_img_weight = loss_img_weight
 
+        self.tie_weights = tie_weights
+
     @torch.no_grad()
     def setup(self):
         if hasattr(self, "_pretrained_text_emb_weight"):
             pre = self._pretrained_text_emb_weight
             npre = pre.shape[0]
             self.text_emb[0].weight[:npre, :] = pre
+
+        if self.tie_weights:
+            self.to_logits[1].weight[:self.num_text_tokens, :] = self.text_emb.weight
+            self.to_logits[1].weight[self.num_text_tokens:, :] = self.text_emb.weight
 
     @torch.no_grad()
     @eval_decorator
